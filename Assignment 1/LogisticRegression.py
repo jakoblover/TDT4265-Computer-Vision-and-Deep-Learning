@@ -1,53 +1,38 @@
 import numpy as np
-from scipy.special import expit
+import matplotlib.pyplot as plt
 
 class LogisticRegression:
-    def __init__(self, lr=0.01, num_iter=100000, fit_intercept=True, verbose=False):
-        self.lr = lr
-        self.num_iter = num_iter
-        self.fit_intercept = fit_intercept
-        self.verbose = verbose
+    def __init__(self, learningRate=0.000001, n=1000):
+        self.learningRate = learningRate
+        self.n = n
+        self.lossVals = []
 
-    def __add_intercept(self, X):
-        intercept = np.ones((X.shape[0], 1))
-        return np.concatenate((intercept, X), axis=1)
-
-    def __sigmoid(self, z):
+    def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
-    def __loss(self, h, y):
-        return (-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
+
+    def _bias(self, X):
+        return np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
+
+    def _loss(self, h, y):
+        return -(-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
+
+    def _gradient(self, X, h, y):
+        return np.dot(X.T, (h - y)) / y.shape[0]
 
     def fit(self, X, y):
-        if self.fit_intercept:
-            X = self.__add_intercept(X)
+        self.lossVals = []
+        #bias trick
+        X = self._bias(X)
+        #create weights matrix
+        self.w = np.zeros(X.shape[1])
 
-        # weights initialization
-        self.theta = np.zeros(X.shape[1])
-
-        for i in range(self.num_iter):
-
-
-            z = np.dot(X, self.theta)
-            h = self.__sigmoid(z)
-            if(i==1):
-                print('h', h)
-            gradient = np.dot(X.T, (h - y)) / y.size
-
-            self.theta -= self.lr * gradient
-            z = np.dot(X, self.theta)
-            h = self.__sigmoid(z)
-            if(i==1):
-                print('h', h)
-            loss = self.__loss(h, y)
-
-            if(self.verbose ==True and i % 10000 == 0):
-                print(f'loss: {loss} \t')
-
-    def predict_prob(self, X):
-        if self.fit_intercept:
-            X = self.__add_intercept(X)
-
-        return self.__sigmoid(np.dot(X, self.theta))
+        for i in range(self.n):
+            h = self._sigmoid(np.dot(X, self.w))
+            self.w -= self.learningRate*self._gradient(X,h,y)
+            self.lossVals.append(self._loss(h,y))
 
     def predict(self, X):
-        return self.predict_prob(X).round()
+        #bias trick
+        X = self._bias(X)
+        #return probability
+        return self._sigmoid(np.dot(X, self.w)).round()
