@@ -52,28 +52,40 @@ np.true_divide(X_test,255)
 np.true_divide(X_validation,255)
 
 
-
-#start_time = time.time()
-#print('Execution time: {0}'.format(time.time()-start_time))
-
-
-model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=1)
+model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.01)
 model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
 plt.plot(model.percentCorrectValidation)
-#model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.001)
-#model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
-#plt.plot(model.percentCorrectValidation)
-#model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.0001)
-#model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
-#plt.plot(model.percentCorrectValidation)
+model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.001)
+model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
+plt.plot(model.percentCorrectValidation)
+model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.0001)
+model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
+plt.plot(model.percentCorrectValidation)
 
-plt.ylabel('Validation Accuracy [%]')
-plt.xlabel('Iteration')
-plt.legend([r'\lambda = 0.01', r'\lambda = 0.001', r'\lambda = 0.0001'])
-
-
-print(model.percentCorrectTest[-1])
-plt.imshow(vectorToImage(model.w[1:]), cmap='gray')
 plt.show()
+#plt.ylabel('Validation Accuracy [%]')
+#plt.xlabel('Iteration')
+#plt.legend([r'\lambda = 0.01', r'\lambda = 0.001', r'\lambda = 0.0001'])
+#plt.show()
 
+#print(model.percentCorrectTest[-1])
+#plt.imshow(vectorToImage(model.w[1:]), cmap='gray')
+#plt.show()
+
+# plt.subplot(2, 1, 1)
+# plt.plot(model.lossValsTraining)
+# plt.plot(model.lossValsValidation)
+# plt.plot(model.lossValsTest)
+# plt.ylabel('Cost')
+# plt.xlabel('Iteration')
+# plt.legend([r'Training set', r'Validation set', r'Test set'])
+#
+# plt.subplot(2, 1, 2)
+# plt.plot(model.percentCorrectTraining)
+# plt.plot(model.percentCorrectValidation)
+# plt.plot(model.percentCorrectTest)
+# plt.ylabel('% Correct')
+# plt.xlabel('Iteration')
+# plt.legend([r'Training set', r'Validation set', r'Test set'])
+#plt.show()
 

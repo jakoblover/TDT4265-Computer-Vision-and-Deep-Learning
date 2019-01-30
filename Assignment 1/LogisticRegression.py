@@ -24,12 +24,12 @@ class LogisticRegression:
 
     def _loss(self, h, y):
         if self.l2_reg:
-            return -((-y * np.log(h) - (1 - y) * np.log(1 - h)).mean() - (self._lambda*np.sum(np.square(self.w))))
-        else: return -((-y * np.log(h) - (1 - y) * np.log(1 - h)).mean())
+            return -(y * np.log(h) + (1 - y) * np.log(1 - h)).mean() + (self._lambda/2)*np.sum(np.square(self.w))
+        else: return -(y * np.log(h) + (1 - y) * np.log(1 - h)).mean()
 
     def _gradient(self, X, h, y):
         if self.l2_reg:
-            return (np.dot(X.T, (h - y)) / y.shape[0]) - (2*self._lambda*np.sum(self.w))
+            return (np.dot(X.T, (h - y)) / y.shape[0]) + (self._lambda*self.w)
         else: return np.dot(X.T, (h - y)) / y.shape[0]
 
     #def _learningRate(self, iteration):
@@ -52,13 +52,12 @@ class LogisticRegression:
             #Update step
             self.w -= self.learningRate*self._gradient(X,h,y)
 
-
-
-
+            #Record cost function values
             self.lossValsTraining.append(self._loss(h,y))
             self.lossValsValidation.append(self._loss(self._sigmoid(np.dot(X_validation, self.w)),Y_validation))
             self.lossValsTest.append(self._loss(self._sigmoid(np.dot(X_test, self.w)),Y_test))
 
+            #Record percentage of correctly predicted images
             Y_hat = self.predict(X)
             self.percentCorrectTraining.append(self.score(Y_hat,y))
             Y_hat = self.predict(X_validation)
