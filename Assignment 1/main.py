@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from LogisticRegression import *
 
-#start_time = time.time()
-#print('Execution time: {0}'.format(time.time()-start_time))
+
 
 #mnist.init()
 X_train, Y_train, X_test, Y_test = mnist.load()
@@ -51,29 +50,43 @@ np.true_divide(X_test,255)
 np.true_divide(X_validation,255)
 
 
-model = LogisticRegression(learningRate=0.000001, n=1500)
+model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True)
 
-model.fit(X_train, Y_train)
-plt.plot(model.lossVals)
-
-model.fit(X_validation, Y_validation)
-plt.plot(model.lossVals)
-
-model.fit(X_test, Y_test)
-plt.plot(model.lossVals)
+start_time = time.time()
+model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
+print('Execution time: {0}'.format(time.time()-start_time))
 
 
+
+
+fig = plt.figure()
+
+plt.subplot(2, 1, 1)
+plt.plot(model.lossValsTraining)
+plt.plot(model.lossValsValidation)
+plt.plot(model.lossValsTest)
 plt.ylabel('Cost')
 plt.xlabel('Iteration')
 plt.legend([r'Training set', r'Validation set', r'Test set'])
+
+plt.subplot(2, 1, 2)
+plt.plot(*zip(*model.percentCorrectTraining))
+plt.plot(*zip(*model.percentCorrectValidation))
+plt.plot(*zip(*model.percentCorrectTest))
+plt.ylabel('% Correct')
+plt.xlabel('Iteration')
+plt.legend([r'Training set', r'Validation set', r'Test set'])
+
 plt.show()
 
-correct = 0
-y_hat = model.predict(X_test)
-for i in range(0,len(y_hat)):
-    if Y_test[i]==y_hat[i]:
-        correct+=1
-print(correct/len(X_test))
+
+#
+#correct = 0
+#y_hat = model.predict(X_test)
+#for i in range(0,len(y_hat)):
+#    if Y_test[i]==y_hat[i]:
+#        correct+=1
+#print(correct/len(X_test))
 #print(model.predict(X_test[-1],0.5))
 #plt.imshow(X_train[0],cmap='gray')
 #plt.show()

@@ -2,10 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class LogisticRegression:
-    def __init__(self, learningRate=0.000001, n=1000):
+    def __init__(self, learningRate=0.000001,n=1000,l2_reg=True,lambd=0.001):
         self.learningRate = learningRate
+        #self.annealing_lr = annealing_lr
+        #self.T_lr = T_lr
+        self._lambda = lambd
+        self.l2_reg = l2_reg
         self.n = n
-        self.lossVals = []
+        self.lossValsTraining = []
+        self.lossValsValidation = []
+        self.lossValsTest = []
+        self.percentCorrectTraining = []
+        self.percentCorrectValidation = []
+        self.percentCorrectTest = []
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
@@ -19,20 +28,47 @@ class LogisticRegression:
     def _gradient(self, X, h, y):
         return np.dot(X.T, (h - y)) / y.shape[0]
 
-    def fit(self, X, y):
-        self.lossVals = []
+    #def _learningRate(self, iteration):
+    #    if(self.annealing_lr):
+    #        return self.learningRate/(1+(iteration/self.T_lr))
+    #    else: return self.learningRate
+
+    def fit(self, X, y, X_validation, Y_validation, X_test, Y_test):
         #bias trick
         X = self._bias(X)
+        X_validation = self._bias(X_validation)
+        X_test = self._bias(X_test)
+
         #create weights matrix
         self.w = np.zeros(X.shape[1])
 
         for i in range(self.n):
             h = self._sigmoid(np.dot(X, self.w))
+            #Update step
             self.w -= self.learningRate*self._gradient(X,h,y)
-            self.lossVals.append(self._loss(h,y))
+
+            self.lossValsTraining.append(self._loss(h,y))
+            self.lossValsValidation.append(self._loss(self._sigmoid(np.dot(X_validation, self.w)),Y_validation))
+            self.lossValsTest.append(self._loss(self._sigmoid(np.dot(X_test, self.w)),Y_test))
+
+            Y_hat = self.predict(X)
+            self.percentCorrectTraining.append((i,self.score(Y_hat,y)))
+            Y_hat = self.predict(X_validation)
+            self.percentCorrectValidation.append((i,self.score(Y_hat,Y_validation)))
+            Y_hat = self.predict(X_test)
+            self.percentCorrectTest.append((i,self.score(Y_hat,Y_test)))
+
+            #Early stopping
+            if len(self.lossValsValidation) > 3:
+                if self.lossValsValidation[i-2] <  self.lossValsValidation[i-1] <  self.lossValsValidation[i]:
+                    return
+
 
     def predict(self, X):
         #bias trick
-        X = self._bias(X)
+        #X = self._bias(X)
         #return probability
         return self._sigmoid(np.dot(X, self.w)).round()
+
+    def score(self,Y_hat,Y):
+        return 100*np.sum(Y_hat == Y)/np.size(Y_hat)
