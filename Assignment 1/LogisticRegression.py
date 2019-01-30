@@ -23,10 +23,14 @@ class LogisticRegression:
         return np.concatenate((np.ones((X.shape[0], 1)), X), axis=1)
 
     def _loss(self, h, y):
-        return -(-y * np.log(h) - (1 - y) * np.log(1 - h)).mean()
+        if self.l2_reg:
+            return -((-y * np.log(h) - (1 - y) * np.log(1 - h)).mean() - (self._lambda*np.sum(np.square(self.w))))
+        else: return -((-y * np.log(h) - (1 - y) * np.log(1 - h)).mean())
 
     def _gradient(self, X, h, y):
-        return np.dot(X.T, (h - y)) / y.shape[0]
+        if self.l2_reg:
+            return (np.dot(X.T, (h - y)) / y.shape[0]) - (2*self._lambda*np.sum(self.w))
+        else: return np.dot(X.T, (h - y)) / y.shape[0]
 
     #def _learningRate(self, iteration):
     #    if(self.annealing_lr):
@@ -34,6 +38,7 @@ class LogisticRegression:
     #    else: return self.learningRate
 
     def fit(self, X, y, X_validation, Y_validation, X_test, Y_test):
+
         #bias trick
         X = self._bias(X)
         X_validation = self._bias(X_validation)
@@ -47,16 +52,19 @@ class LogisticRegression:
             #Update step
             self.w -= self.learningRate*self._gradient(X,h,y)
 
+
+
+
             self.lossValsTraining.append(self._loss(h,y))
             self.lossValsValidation.append(self._loss(self._sigmoid(np.dot(X_validation, self.w)),Y_validation))
             self.lossValsTest.append(self._loss(self._sigmoid(np.dot(X_test, self.w)),Y_test))
 
             Y_hat = self.predict(X)
-            self.percentCorrectTraining.append((i,self.score(Y_hat,y)))
+            self.percentCorrectTraining.append(self.score(Y_hat,y))
             Y_hat = self.predict(X_validation)
-            self.percentCorrectValidation.append((i,self.score(Y_hat,Y_validation)))
+            self.percentCorrectValidation.append(self.score(Y_hat,Y_validation))
             Y_hat = self.predict(X_test)
-            self.percentCorrectTest.append((i,self.score(Y_hat,Y_test)))
+            self.percentCorrectTest.append(self.score(Y_hat,Y_test))
 
             #Early stopping
             if len(self.lossValsValidation) > 3:
@@ -72,3 +80,5 @@ class LogisticRegression:
 
     def score(self,Y_hat,Y):
         return 100*np.sum(Y_hat == Y)/np.size(Y_hat)
+
+

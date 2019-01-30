@@ -1,10 +1,12 @@
 import mnist
 import time
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import numpy as np
 from LogisticRegression import *
 
-
+def vectorToImage(vector):
+    return np.reshape(vector,(28,28))
 
 #mnist.init()
 X_train, Y_train, X_test, Y_test = mnist.load()
@@ -50,48 +52,28 @@ np.true_divide(X_test,255)
 np.true_divide(X_validation,255)
 
 
-model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True)
 
-start_time = time.time()
+#start_time = time.time()
+#print('Execution time: {0}'.format(time.time()-start_time))
+
+
+model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=1)
 model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
-print('Execution time: {0}'.format(time.time()-start_time))
+plt.plot(model.percentCorrectValidation)
+#model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.001)
+#model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
+#plt.plot(model.percentCorrectValidation)
+#model = LogisticRegression(learningRate=0.000001, n=15000, l2_reg=True, lambd=0.0001)
+#model.fit(X_train, Y_train, X_validation, Y_validation, X_test, Y_test)
+#plt.plot(model.percentCorrectValidation)
 
-
-
-
-fig = plt.figure()
-
-plt.subplot(2, 1, 1)
-plt.plot(model.lossValsTraining)
-plt.plot(model.lossValsValidation)
-plt.plot(model.lossValsTest)
-plt.ylabel('Cost')
+plt.ylabel('Validation Accuracy [%]')
 plt.xlabel('Iteration')
-plt.legend([r'Training set', r'Validation set', r'Test set'])
+plt.legend([r'\lambda = 0.01', r'\lambda = 0.001', r'\lambda = 0.0001'])
 
-plt.subplot(2, 1, 2)
-plt.plot(*zip(*model.percentCorrectTraining))
-plt.plot(*zip(*model.percentCorrectValidation))
-plt.plot(*zip(*model.percentCorrectTest))
-plt.ylabel('% Correct')
-plt.xlabel('Iteration')
-plt.legend([r'Training set', r'Validation set', r'Test set'])
 
+print(model.percentCorrectTest[-1])
+plt.imshow(vectorToImage(model.w[1:]), cmap='gray')
 plt.show()
-
-
-#
-#correct = 0
-#y_hat = model.predict(X_test)
-#for i in range(0,len(y_hat)):
-#    if Y_test[i]==y_hat[i]:
-#        correct+=1
-#print(correct/len(X_test))
-#print(model.predict(X_test[-1],0.5))
-#plt.imshow(X_train[0],cmap='gray')
-#plt.show()
-
-
-
 
 
