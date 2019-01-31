@@ -81,3 +81,4 @@ class LogisticRegression:
         return 100*np.sum(Y_hat == Y)/np.size(Y_hat)
 
 
+
