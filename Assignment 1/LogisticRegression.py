@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 class LogisticRegression:
     def __init__(self, learningRate=0.000001,n=1000,l2_reg=True,lambd=0.001):
         self.learningRate = learningRate
-        #self.annealing_lr = annealing_lr
-        #self.T_lr = T_lr
         self._lambda = lambd
         self.l2_reg = l2_reg
         self.n = n
@@ -34,7 +32,6 @@ class LogisticRegression:
         else: return np.dot(X.T, (h - y)) / y.shape[0]
 
     def fit(self, X, y, X_validation, Y_validation, X_test, Y_test):
-
         #bias trick
         X = self._bias(X)
         X_validation = self._bias(X_validation)
@@ -45,8 +42,9 @@ class LogisticRegression:
 
         for i in range(self.n):
             print("Epoch {0}/{1}".format(i+1,self.n))
-            h = self._sigmoid(np.dot(X, self.w))
+
             #Update step
+            h = self._sigmoid(np.dot(X, self.w))
             self.w -= self.learningRate*self._gradient(X,h,y)
 
             #Record cost function values
@@ -56,11 +54,11 @@ class LogisticRegression:
 
             #Record percentage of correctly predicted images
             Y_hat = self.predict(X)
-            self.percentCorrectTraining.append(self.score(Y_hat,y))
+            self.percentCorrectTraining.append(self.accuracy(Y_hat, y))
             Y_hat = self.predict(X_validation)
-            self.percentCorrectValidation.append(self.score(Y_hat,Y_validation))
+            self.percentCorrectValidation.append(self.accuracy(Y_hat, Y_validation))
             Y_hat = self.predict(X_test)
-            self.percentCorrectTest.append(self.score(Y_hat,Y_test))
+            self.percentCorrectTest.append(self.accuracy(Y_hat, Y_test))
 
             #Record weights length
             self.weightsLengths.append(np.sum(np.square(self.w)))
@@ -72,16 +70,11 @@ class LogisticRegression:
 
 
     def predict(self, X):
-        #bias trick
-        #X = self._bias(X)
-        #return probability
         return self._sigmoid(np.dot(X, self.w)).round()
 
-    def score(self,Y_hat,Y):
+    def accuracy(self, Y_hat, Y):
         return 100*np.sum(Y_hat == Y)/np.size(Y_hat)
 
-    def plotWeightsAsImage(self):
-        plt.imshow(np.reshape(self.w[1:], (28, 28)), cmap='gray')
 
 
 
