@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class SoftmaxRegression:
 
-    def __init__(self, learningRate=0.01, n=100000, lambd=0.01):
+    def __init__(self, learningRate=0.01, n=10000, lambd=0.01):
         self.n = n
         self.learningRate = learningRate
         self._lambda = lambd
@@ -38,6 +38,7 @@ class SoftmaxRegression:
         self.w = np.zeros([X_train.shape[1],10])
 
         for i in range(0, self.n):
+            print('Epoch {0}'.format(i))
             h = self.softmax(np.dot(X_train, self.w))
             self.w -= (self.learningRate * self._gradient(X_train, Y_train, h))
 
@@ -74,14 +75,23 @@ class SoftmaxRegression:
         plt.ylabel('% Correct')
         plt.xlabel('Iteration')
         plt.legend([r'Training set', r'Validation set', r'Test set'])
-        plt.show()
 
-    def plotWeightVisualization(self):
-        n_images = 10
-        titles = ['Image (%d)' % i for i in range(0, n_images)]
-        fig = plt.figure()
-        for i in range(10):
-            a = fig.add_subplot(4, np.ceil(n_images / float(4)), i + 1)
-            plt.imshow(np.reshape(self.w[:, i],(28,28)))
-        plt.show()
+    def plotCost(self):
+        plt.plot(self.lossValsTraining)
+        plt.plot(self.lossValsValidation)
+        plt.plot(self.lossValsTest)
+        plt.ylabel('Cost')
+        plt.xlabel('Iteration')
+        plt.legend([r'Training set', r'Validation set', r'Test set'])
+
+    def plotWeightVisualization(self, digit):
+    #     n_images = 10
+    #     titles = ['Image (%d)' % i for i in range(0, n_images)]
+    #     fig = plt.figure()
+    #     for i in range(10):
+    #         a = fig.add_subplot(4, np.ceil(n_images / float(4)), i + 1)
+    #         plt.imshow(np.reshape(self.w[:, i],(28,28)), cmap='gray')
+    #     plt.show()
+        plt.imshow(np.reshape(self.w[:, digit], (28, 28)), cmap='gray')
+
 

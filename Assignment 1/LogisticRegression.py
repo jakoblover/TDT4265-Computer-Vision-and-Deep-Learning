@@ -15,6 +15,7 @@ class LogisticRegression:
         self.percentCorrectTraining = []
         self.percentCorrectValidation = []
         self.percentCorrectTest = []
+        self.weightsLengths = []
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
@@ -32,11 +33,6 @@ class LogisticRegression:
             return (np.dot(X.T, (h - y)) / y.shape[0]) + (self._lambda*self.w)
         else: return np.dot(X.T, (h - y)) / y.shape[0]
 
-    #def _learningRate(self, iteration):
-    #    if(self.annealing_lr):
-    #        return self.learningRate/(1+(iteration/self.T_lr))
-    #    else: return self.learningRate
-
     def fit(self, X, y, X_validation, Y_validation, X_test, Y_test):
 
         #bias trick
@@ -48,6 +44,7 @@ class LogisticRegression:
         self.w = np.zeros(X.shape[1])
 
         for i in range(self.n):
+            print("Epoch {0}/{1}".format(i+1,self.n))
             h = self._sigmoid(np.dot(X, self.w))
             #Update step
             self.w -= self.learningRate*self._gradient(X,h,y)
@@ -65,6 +62,9 @@ class LogisticRegression:
             Y_hat = self.predict(X_test)
             self.percentCorrectTest.append(self.score(Y_hat,Y_test))
 
+            #Record weights length
+            self.weightsLengths.append(np.sum(np.square(self.w)))
+
             #Early stopping
             if len(self.lossValsValidation) > 3:
                 if self.lossValsValidation[i-2] <  self.lossValsValidation[i-1] <  self.lossValsValidation[i]:
@@ -79,6 +79,9 @@ class LogisticRegression:
 
     def score(self,Y_hat,Y):
         return 100*np.sum(Y_hat == Y)/np.size(Y_hat)
+
+    def plotWeightsAsImage(self):
+        plt.imshow(np.reshape(self.w[1:], (28, 28)), cmap='gray')
 
 
 
