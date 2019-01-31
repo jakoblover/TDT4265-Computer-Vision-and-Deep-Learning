@@ -56,7 +56,6 @@ def plotWeightsAndAverageDigits(X,Y,w):
 
 def plotWeights(w):
     plt.imshow(np.reshape(w[1:], (28, 28)), cmap='gray')
-    plt.show()
 
 def plotCostAndAccuracy(lossValsTraining, lossValsValidation, lossValsTest, percentCorrectTraining, percentCorrectValidation, percentCorrectTest):
     plt.subplot(2, 1, 1)
