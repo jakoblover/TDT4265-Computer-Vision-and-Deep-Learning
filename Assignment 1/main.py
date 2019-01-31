@@ -7,7 +7,7 @@ from LogisticRegression import *
 from SoftmaxRegression import *
 import utils
 
-#mnist.init()
+mnist.init()
 X_train, Y_train, X_test, Y_test = mnist.load()
 
 #Slice the training set
