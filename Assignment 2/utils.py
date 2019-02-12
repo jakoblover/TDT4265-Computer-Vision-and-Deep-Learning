@@ -20,6 +20,12 @@ def train_val_split(X, Y, val_percentage):
     X_val, Y_val = X[idx_val], Y[idx_val]
     return X_train, Y_train, X_val, Y_val
 
+def shuffle(X, Y):
+    dataset_size = X.shape[0]
+    idx = np.arange(0, dataset_size)
+    np.random.shuffle(idx)
+
+    return X[idx], Y[idx]
 
 def onehot_encode(Y, n_classes=10):
     onehot = np.zeros((Y.shape[0], n_classes))
@@ -46,18 +52,16 @@ def softmax(z):
     return a_exp / a_exp.sum(axis=1, keepdims=True)
 
 def softmax_der(a):
-    """
-    Applies the softmax activation function for the vector a.
-    --
-    a: shape: [batch_size, num_classes]. Activation of the output layer before activation
-    --
-    Returns: [batch_size, num_classes] numpy vector
-    """
-    a_exp = np.exp(a)
-    return a_exp / a_exp.sum(axis=1, keepdims=True)
+    return
 
 def sigmoid(z):
     return 1.0/(1.0+np.exp(-z))
 
-def sigmoid_der(a,):
+def sigmoid_der(a):
     return np.multiply(a, 1-a)
+
+def improved_sigmoid(z):
+    return 1.7159*np.tanh((2.0/3.0)*z) + 0.01*z
+
+def improved_sigmoid_der(a):
+    return 1.7159*(2.0/3.0)*(1/((np.cosh(2.0/3.0*a))**2)) + 0.01

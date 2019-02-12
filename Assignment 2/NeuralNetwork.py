@@ -2,20 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mnist
 import tqdm
+import utils
 
 class NeuralNetwork:
     def __init__(self,max_epochs=40, learning_rate=0.5, should_gradient_check=False, batch_size = 128):
         self._batch_size = batch_size
         self._max_epochs = max_epochs
         self._learning_rate = learning_rate
-
         self._should_gradient_check = should_gradient_check
 
-
-
-
         self.layers = []
-
 
         # Tracking variables
         self.TRAIN_LOSS = []
@@ -63,7 +59,7 @@ class NeuralNetwork:
         is_increasing = [validation_loss[i] <= validation_loss[i+1] for i in range(-num_steps-1, -1)]
         return sum(is_increasing) == len(is_increasing)
 
-    def check_gradient(self, X, targets, w, epsilon, computed_gradient):
+    def _check_gradient(self, X, targets, w, epsilon, computed_gradient):
         """
         Computes the numerical approximation for the gradient of w,
         w.r.t. the input X and target vector targets.
@@ -83,10 +79,15 @@ class NeuralNetwork:
                 new_weight1, new_weight2 = np.copy(w), np.copy(w)
                 new_weight1[k,j] += epsilon
                 new_weight2[k,j] -= epsilon
-                loss1 = cross_entropy_loss(X, targets, new_weight1)
-                loss2 = cross_entropy_loss(X, targets, new_weight2)
+
+
+                loss1 = self._cross_entropy_loss1(X, targets, self.layers[0].w, new_weight1)
+                loss2 = self._cross_entropy_loss1(X, targets, self.layers[0].w, new_weight2)
+
+
                 dw[k,j] = (loss1 - loss2) / (2*epsilon)
         maximum_abosulte_difference = abs(computed_gradient-dw).max()
+        print(maximum_abosulte_difference)
         assert maximum_abosulte_difference <= epsilon**2, "Absolute error was: {}".format(maximum_abosulte_difference)
 
 
@@ -122,7 +123,6 @@ class NeuralNetwork:
         cross_entropy = -targets * log_y
         return cross_entropy.mean()
 
-
     def _gradient_descent(self, X, targets):
         """
         Performs gradient descents for all weights in the network.
@@ -140,12 +140,14 @@ class NeuralNetwork:
         normalization_factor = X.shape[0] * targets.shape[1] # batch_size * num_classes
         outputs = self.forward(X)
 
+        #Go backwards in our network, and calculate deltas
         for i in range(len(self.layers)-1,-1,-1):
             if i == len(self.layers)-1:
                 self.layers[i].delta = - (targets - outputs)
             else:
                 self.layers[i].delta = np.multiply(self.layers[i].activation_der(self.layers[i].a),np.dot(self.layers[i+1].delta,self.layers[i+1].w))
 
+        #Go forwards in our network and update our gradients
         for i in range(0,len(self.layers)):
             if i == 0:
                 self.layers[i].dw = self.layers[i].delta.T.dot(X) / normalization_factor
@@ -156,11 +158,11 @@ class NeuralNetwork:
 
 
 
-        #if self._should_check_gradient:
-        #    self._check_gradient(X, targets, w1, 1e-2,  dw1)
-        #    self._check_gradient(X, targets, w2, 1e-2,  dw2)
+        #if self._should_gradient_check:
+        #    self._check_gradient(X, targets, self.layers[1].w, 1e-2,  self.layers[1].dw)
 
 
+        #Update weights based on new gradient
         for i in range(0,len(self.layers)):
             self.layers[i].w -= self._learning_rate*self.layers[i].dw
 
@@ -193,8 +195,9 @@ class NeuralNetwork:
                     self.TRAIN_ACC.append(self._calculate_accuracy(X_train, Y_train))
                     self.VAL_ACC.append(self._calculate_accuracy(X_val, Y_val))
                     self.TEST_ACC.append(self._calculate_accuracy(X_test, Y_test))
-                    if self._should_early_stop(self.VAL_LOSS):
-                        print(self.VAL_LOSS[-4:])
-                        print("early stopping.")
-        #Return final weights
-        return self.layers[len(self.layers)-1].w
+                if self._should_early_stop(self.VAL_LOSS):
+                    print(self.VAL_LOSS[-4:])
+                    print("early stopping.")
+                    return
+
+            X_train, Y_train = utils.shuffle(X_train,Y_train)

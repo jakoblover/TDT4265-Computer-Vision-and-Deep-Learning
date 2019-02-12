@@ -8,9 +8,9 @@ from Layer import *
 #mnist.init()
 X_train, Y_train, X_test, Y_test = mnist.load()
 
-# Pre-process data
-X_train = X_train[0:40000]
-Y_train = Y_train[0:40000]
+# Pre-process data. For computers with less RAM, we must slice the training set
+X_train = X_train[0:50000]
+Y_train = Y_train[0:50000]
 
 X_train, X_test = (X_train/127.5)-1, (X_test/127.5)-1
 X_train = utils.bias_trick(X_train)
@@ -22,39 +22,38 @@ X_train, Y_train, X_val, Y_val = utils.train_val_split(X_train, Y_train, 0.1)
 
 
 #Add Layers
-hidden_layer = Layer(num_input=X_train.shape[1], num_neurons=64)
-output_layer = Layer(num_input=64, num_neurons=Y_train.shape[1], activation_func=utils.softmax)
+hidden_layer = Layer(num_input=X_train.shape[1], num_neurons=64, activation_func=utils.improved_sigmoid, activation_func_der=utils.improved_sigmoid_der)
+output_layer = Layer(num_input=64, num_neurons=Y_train.shape[1], activation_func=utils.softmax) #The derivation of the activation function of the output layer is not used
 
 #Create network
-model = NeuralNetwork(max_epochs=20,learning_rate=1,should_gradient_check=False,batch_size=128)
-
+model = NeuralNetwork(max_epochs=20,learning_rate=1,should_gradient_check=False,batch_size=64)
 model.addLayer(hidden_layer)
 model.addLayer(output_layer)
 
-w = model.fit(X_train,Y_train,X_val,Y_val,X_test,Y_test)
+#Train the network
+model.fit(X_train,Y_train,X_val,Y_val,X_test,Y_test)
 
-#print(model.forward(X_test))
-
-
-
-
-
+plt.subplot(2,1,1)
 plt.plot(model.TRAIN_LOSS, label="Training loss")
 plt.plot(model.TEST_LOSS, label="Testing loss")
 plt.plot(model.VAL_LOSS, label="Validation loss")
 plt.legend()
-#plt.ylim([0, 0.05])
-plt.show()
+plt.xlabel('Iterations')
+plt.ylabel('Cost')
+plt.ylim([0, 0.1])
 
-plt.clf()
+plt.subplot(2,1,2)
 plt.plot(model.TRAIN_ACC, label="Training accuracy")
 plt.plot(model.TEST_ACC, label="Testing accuracy")
 plt.plot(model.VAL_ACC, label="Validation accuracy")
 plt.ylim([0.8, 1.0])
+plt.xlabel('Iterations')
+plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
 
 plt.clf()
+
 
 '''
 w = w[:, :-1]  # Remove bias

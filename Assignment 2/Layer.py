@@ -12,7 +12,6 @@ class Layer:
         self.dw = 0
         self.a = 0
 
-
         self.w = np.random.uniform(-1, 1, (num_neurons, self._num_input))
 
     def activation(self,z):
