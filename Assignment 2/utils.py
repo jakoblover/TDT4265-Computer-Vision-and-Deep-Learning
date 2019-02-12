@@ -26,7 +26,6 @@ def onehot_encode(Y, n_classes=10):
     onehot[np.arange(0, Y.shape[0]), Y] = 1
     return onehot
 
-
 def bias_trick(X):
     """
     X: shape[batch_size, num_features(784)]
@@ -34,3 +33,31 @@ def bias_trick(X):
     Returns [batch_size, num_features+1 ]
     """
     return np.concatenate((X, np.ones((len(X), 1))), axis=1)
+
+def softmax(z):
+    """
+    Applies the softmax activation function for the vector a.
+    --
+    a: shape: [batch_size, num_classes]. Activation of the output layer before activation
+    --
+    Returns: [batch_size, num_classes] numpy vector
+    """
+    a_exp = np.exp(z)
+    return a_exp / a_exp.sum(axis=1, keepdims=True)
+
+def softmax_der(a):
+    """
+    Applies the softmax activation function for the vector a.
+    --
+    a: shape: [batch_size, num_classes]. Activation of the output layer before activation
+    --
+    Returns: [batch_size, num_classes] numpy vector
+    """
+    a_exp = np.exp(a)
+    return a_exp / a_exp.sum(axis=1, keepdims=True)
+
+def sigmoid(z):
+    return 1.0/(1.0+np.exp(-z))
+
+def sigmoid_der(a,):
+    return np.multiply(a, 1-a)
