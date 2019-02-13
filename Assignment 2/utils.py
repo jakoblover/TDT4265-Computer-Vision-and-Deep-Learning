@@ -51,17 +51,25 @@ def softmax(z):
     a_exp = np.exp(z)
     return a_exp / a_exp.sum(axis=1, keepdims=True)
 
-def softmax_der(a):
+def softmax_der(z):
     return
 
 def sigmoid(z):
     return 1.0/(1.0+np.exp(-z))
 
-def sigmoid_der(a):
-    return np.multiply(a, 1-a)
+def sigmoid_der(z):
+    return np.multiply(sigmoid(z), 1-sigmoid(z))
 
 def improved_sigmoid(z):
-    return 1.7159*np.tanh((2.0/3.0)*z) + 0.01*z
+    return 1.7159*np.tanh((2.0/3.0)*z) + 0.001*z
 
-def improved_sigmoid_der(a):
-    return 1.7159*(2.0/3.0)*(1/((np.cosh(2.0/3.0*a))**2)) + 0.01
+def improved_sigmoid_der(z):
+    return 1.7159*(2.0/3.0)*(1/((np.cosh(2.0/3.0*z))**2)) + 0.001
+
+def relu(z):
+    return np.maximum(0,z)
+
+def relu_der(z):
+    z[z <= 0] = 0
+    z[z > 0] = 1
+    return z

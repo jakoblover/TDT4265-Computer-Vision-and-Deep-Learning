@@ -5,11 +5,12 @@ import tqdm
 import utils
 
 class NeuralNetwork:
-    def __init__(self,max_epochs=40, learning_rate=0.5, should_gradient_check=False, batch_size = 128):
+    def __init__(self,max_epochs=40, learning_rate=0.5, should_gradient_check=False, batch_size = 128, momentum = 0.9):
         self._batch_size = batch_size
         self._max_epochs = max_epochs
         self._learning_rate = learning_rate
         self._should_gradient_check = should_gradient_check
+        self._momentum = momentum
 
         self.layers = []
 
@@ -37,11 +38,14 @@ class NeuralNetwork:
         a = 0
         for i in range(0,len(self.layers)):
             if i == 0:
-                a = self.layers[i].activation(X_in.dot(self.layers[i].w.T))
+                z = X_in.dot(self.layers[i].w.T)
+                a = self.layers[i].activation(z)
             else:
-                a = self.layers[i].activation(a.dot(self.layers[i].w.T))
+                z = a.dot(self.layers[i].w.T)
+                a = self.layers[i].activation(z)
 
             self.layers[i].a = a
+            self.layers[i].z = z
 
         return a
 
@@ -145,10 +149,11 @@ class NeuralNetwork:
             if i == len(self.layers)-1:
                 self.layers[i].delta = - (targets - outputs)
             else:
-                self.layers[i].delta = np.multiply(self.layers[i].activation_der(self.layers[i].a),np.dot(self.layers[i+1].delta,self.layers[i+1].w))
+                self.layers[i].delta = np.multiply(self.layers[i].activation_der(self.layers[i].z),np.dot(self.layers[i+1].delta,self.layers[i+1].w))
 
         #Go forwards in our network and update our gradients
         for i in range(0,len(self.layers)):
+            self.layers[i].prev_dw = self.layers[i].dw
             if i == 0:
                 self.layers[i].dw = self.layers[i].delta.T.dot(X) / normalization_factor
             else:
@@ -164,7 +169,7 @@ class NeuralNetwork:
 
         #Update weights based on new gradient
         for i in range(0,len(self.layers)):
-            self.layers[i].w -= self._learning_rate*self.layers[i].dw
+            self.layers[i].w -= self._learning_rate*self.layers[i].dw + self._momentum*self.layers[i].prev_dw
 
 
     def fit(self, X_train, Y_train, X_val, Y_val, X_test, Y_test):
@@ -195,9 +200,9 @@ class NeuralNetwork:
                     self.TRAIN_ACC.append(self._calculate_accuracy(X_train, Y_train))
                     self.VAL_ACC.append(self._calculate_accuracy(X_val, Y_val))
                     self.TEST_ACC.append(self._calculate_accuracy(X_test, Y_test))
-                if self._should_early_stop(self.VAL_LOSS):
-                    print(self.VAL_LOSS[-4:])
-                    print("early stopping.")
-                    return
+                    if self._should_early_stop(self.VAL_LOSS):
+                        print(self.VAL_LOSS[-4:])
+                        print("early stopping.")
+                        return
 
             X_train, Y_train = utils.shuffle(X_train,Y_train)

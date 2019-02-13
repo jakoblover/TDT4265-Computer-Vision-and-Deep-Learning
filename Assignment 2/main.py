@@ -22,11 +22,11 @@ X_train, Y_train, X_val, Y_val = utils.train_val_split(X_train, Y_train, 0.1)
 
 
 #Add Layers
-hidden_layer = Layer(num_input=X_train.shape[1], num_neurons=64, activation_func=utils.improved_sigmoid, activation_func_der=utils.improved_sigmoid_der)
+hidden_layer = Layer(num_input=X_train.shape[1], num_neurons=64, activation_func=utils.relu, activation_func_der=utils.relu_der)
 output_layer = Layer(num_input=64, num_neurons=Y_train.shape[1], activation_func=utils.softmax) #The derivation of the activation function of the output layer is not used
 
 #Create network
-model = NeuralNetwork(max_epochs=20,learning_rate=1,should_gradient_check=False,batch_size=64)
+model = NeuralNetwork(max_epochs=20,learning_rate=0.01,should_gradient_check=False,batch_size=256, momentum=0.9)
 model.addLayer(hidden_layer)
 model.addLayer(output_layer)
 
@@ -51,14 +51,3 @@ plt.xlabel('Iterations')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
-
-plt.clf()
-
-
-'''
-w = w[:, :-1]  # Remove bias
-w = w.reshape(10, 28, 28)
-w = np.concatenate(w, axis=0)
-plt.imshow(w, cmap="gray")
-plt.show()
-'''

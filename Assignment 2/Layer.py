@@ -10,9 +10,14 @@ class Layer:
 
         self.delta = 0
         self.dw = 0
+        self.prev_dw = 0
         self.a = 0
+        self.z = 0
 
-        self.w = np.random.uniform(-1, 1, (num_neurons, self._num_input))
+        #Normally distributed weights with zero mean and 1/sqrt(fan_in) standard deviation
+        self.w = np.random.normal(0, 1 / np.sqrt(num_input), (num_neurons, self._num_input))
+        #Random weights between -1 and 1
+        #self.w = np.random.uniform(-1, 1, (num_neurons, self._num_input))
 
     def activation(self,z):
         return self._activation_func(z)
