@@ -35,6 +35,7 @@ class NeuralNetwork:
         Returns: [batch_size, num_classes] numpy vector
         """
 
+        #Iterate through the network and update activation
         a = 0
         for i in range(0,len(self.layers)):
             if i == 0:
@@ -135,7 +136,6 @@ class NeuralNetwork:
         targets: shape: [batch_size, num_classes] numpy vector. Targets/label of images
         w: shape: [num_classes, num_features] numpy vector. Weight from input->output
         --
-        Returns updated w, with same shape
         """
 
         # Since we are taking the .mean() of our loss, we get the normalization factor to be 1/(N*C)
@@ -205,4 +205,5 @@ class NeuralNetwork:
                         print("early stopping.")
                         return
 
+            #Shuffle training data after every epich
             X_train, Y_train = utils.shuffle(X_train,Y_train)
