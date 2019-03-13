@@ -48,6 +48,12 @@ def test_iou():
     ans = 0.82265
     assert res == ans, "Expected {}, got: {}".format(ans, res)
 
+    b1 = np.array([0, 0, 1, 1])
+    b2 = np.array([2, 2, 3, 3])
+    res = calculate_iou(b1, b2)
+    ans = 0
+    assert res == ans, "Expected {}, got: {}".format(ans, res)
+
 
 def test_precision():
     print("="*80)
