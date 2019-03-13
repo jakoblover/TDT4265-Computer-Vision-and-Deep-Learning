@@ -118,8 +118,7 @@ def get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold):
     return match_pred, match_gt
 
 
-def calculate_individual_image_result(
-        prediction_boxes, gt_boxes, iou_threshold):
+def calculate_individual_image_result(prediction_boxes, gt_boxes, iou_threshold):
     """Given a set of prediction boxes and ground truth boxes,
        calculates true positives, false positives and false negatives
        for a single image.
@@ -136,14 +135,15 @@ def calculate_individual_image_result(
         dict: containing true positives, false positives, true negatives, false negatives
             {"true_pos": int, "false_pos": int, "false_neg": int}
     """
-    raise NotImplementedError
-    # Find the bounding box matches with the highes IoU threshold
-    
-    # Compute true positives, false positives, false negatives
+    pred_match, gt_match = get_all_box_matches(prediction_boxes, gt_boxes, iou_threshold)
+
+    num_true_pos = pred_match.shape[0]
+    num_false_pos = prediction_boxes.shape[0] - num_true_pos
+    num_false_neg = gt_boxes.shape[0] - num_true_pos
+    return {"true_pos": num_true_pos, "false_pos": num_false_pos, "false_neg": num_false_neg}
 
 
-def calculate_precision_recall_all_images(
-        all_prediction_boxes, all_gt_boxes, iou_threshold):
+def calculate_precision_recall_all_images(all_prediction_boxes, all_gt_boxes, iou_threshold):
     """Given a set of prediction boxes and ground truth boxes for all images,
        calculates recall and precision over all images.
        
@@ -161,12 +161,22 @@ def calculate_precision_recall_all_images(
     Returns:
         tuple: (precision, recall). Both float.
     """
-    raise NotImplementedError
     # Find total true positives, false positives and false negatives
     # over all images
 
     # Compute precision, recall
+    total_true_pos, total_false_pos, total_false_neg = 0, 0, 0
+    for image_pred_boxes, image_gt_boxes in zip(all_prediction_boxes, all_gt_boxes):
+        num_dict = calculate_individual_image_result(image_pred_boxes, image_gt_boxes, iou_threshold)
 
+        total_true_pos += num_dict["true_pos"]
+        total_false_pos += num_dict["false_pos"]
+        total_true_pos += num_dict["true_pos"]
+
+    precision = calculate_precision(total_true_pos, total_false_pos, total_false_neg)
+    recall = calculate_recall(total_true_pos, total_false_pos, total_false_neg)
+
+    return precision, recall
 
 def get_precision_recall_curve(all_prediction_boxes, all_gt_boxes,
                                confidence_scores, iou_threshold):
