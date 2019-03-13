@@ -1,161 +1,29 @@
 import os
 import matplotlib.pyplot as plt
 import torch
+import torchvision
 from torch import nn
 from dataloaders import load_cifar10
 from utils import to_cuda, compute_loss_and_accuracy
+import numpy as np
 
 
-class ExampleModel(nn.Module):
+class Model (nn.Module):
+    def __init__(self):
+        super ().__init__()
+        self.model = torchvision.models.resnet18(pretrained = True)
+        self.model.fc = nn.Linear(512*4, 10) # No need to apply softmax, as this is done in nn. C r o s s E n t r o p y L o s s
+        for param in self.model.parameters(): # Freeze all parameters
+            param.requires_grad = False
+        for param in self.model.fc.parameters(): # Unfreeze the last fully - connected
+            param.requires_grad = True # layer
+        for param in self.model.layer4.parameters(): # Unfreeze the last 5 c on vo lu ti on al
+            param.requires_grad = True # layers
 
-    def __init__(self,
-                 image_channels,
-                 num_classes):
-        """
-            Is called when model is initialized.
-            Args:
-                image_channels. Number of color channels in image (3)
-                num_classes: Number of classes we want to predict (10)
-        """
-        super().__init__()
-        num_filters = 32  # Set number of filters in first conv layer
-
-        # Define the convolutional layers
-        # self.feature_extractor = nn.Sequential(
-        #     nn.Conv2d(
-        #         in_channels=image_channels,
-        #         out_channels=num_filters,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters,
-        #         out_channels=num_filters * 2,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters * 2,
-        #         out_channels=num_filters * 4,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        # )
-
-        self.feature_extractor = nn.Sequential(
-            #[32x32x3]
-            nn.Conv2d(
-                in_channels=image_channels,
-                out_channels=num_filters,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters),
-            nn.Conv2d(
-                in_channels=num_filters,
-                out_channels=num_filters,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(p=0.5),
-
-            #[16x16x32]
-            nn.Conv2d(
-                in_channels=num_filters,
-                out_channels=num_filters*2,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters*2),
-            nn.Conv2d(
-                in_channels=num_filters * 2,
-                out_channels=num_filters * 2,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters*2),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(p=0.4),
-
-            #[8x8x64]
-            nn.Conv2d(
-                in_channels=num_filters * 2,
-                out_channels=num_filters * 4,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters*4),
-            nn.Conv2d(
-                in_channels=num_filters * 4,
-                out_channels=num_filters * 4,
-                kernel_size=5,
-                stride=1,
-                padding=2
-            ),
-            nn.ELU(),
-            nn.BatchNorm2d(num_filters*4),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(p=0.3),
-
-        )
-        # The output of feature_extractor will be [batch_size, num_filters, 16, 16]
-
-        # layer1_output = ((num_filters/2)-5+(2*2),(num_filters/2)-5+(2*2),32)
-        # layer2_output = ((layer1_output[0]/2)- 5 + (2 * 2), (layer1_output[1]/2) - 5 + (2 * 2), 64)
-        # layer3_output = ((layer2_output[0] / 2) - 5 + (2 * 2), (layer2_output[1] / 2) - 5 + (2 * 2), 128)
-
-        # self.num_output_features = int(layer3_output[0]*layer3_output[1]*layer3_output[2])
-        self.num_output_features = 4 * 4 * 128
-
-        # Initialize our last fully connected layer
-        # Inputs all extracted features from the convolutional layers
-        # Outputs num_classes predictions, 1 for each class.
-        # There is no need for softmax activation function, as this is
-        # included with nn.CrossEntropyLoss
-        self.classifier = nn.Sequential(
-            nn.Linear(self.num_output_features, num_classes),
-        )
-
-        self.feature_extractor.apply(self.init_weights)
-        self.classifier.apply(self.init_weights)
-
-    def forward(self, x):
-        """
-        Performs a forward pass through the model
-        Args:
-            x: Input image, shape: [batch_size, 3, 32, 32]
-        """
-
-        # Run image through convolutional layers
-        x = self.feature_extractor(x)
-        # Reshape our input to (batch_size, num_output_features)
-        x = x.view(-1, self.num_output_features)
-        # Forward pass through the fully-connected layers.
-        x = self.classifier(x)
+    def forward (self, x):
+        x = nn.functional.interpolate(x, scale_factor=8)
+        x = self.model(x)
         return x
-
-    def init_weights(self,a):
-        if type(a) == (nn.Linear or nn.Conv2d):
-            torch.nn.init.xavier_uniform_(a.weight)
-            a.bias.data.fill_(0.01)
 
 
 class Trainer:
@@ -167,8 +35,8 @@ class Trainer:
         """
         # Define hyperparameters
         self.epochs = 10
-        self.batch_size = 64
-        self.learning_rate = 0.1
+        self.batch_size = 32
+        self.learning_rate = 5e-4
         self.early_stop_count = 4
 
         # Architecture
@@ -176,16 +44,13 @@ class Trainer:
         # Since we are doing multi-class classification, we use the CrossEntropyLoss
         self.loss_criterion = nn.CrossEntropyLoss()
         # Initialize the mode
-        self.model = ExampleModel(image_channels=3, num_classes=10)
+        self.model = Model()
         # Transfer model to GPU VRAM, if possible.
         self.model = to_cuda(self.model)
 
         # Define our optimizer. SGD = Stochastich Gradient Descent
-        self.optimizer = torch.optim.SGD(self.model.parameters(),
+        self.optimizer = torch.optim.Adam(self.model.parameters(),
                                          self.learning_rate)
-        #self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
-        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[4,8], gamma=0.5, last_epoch=-1)
-
 
         # Load our dataset
         self.dataloader_train, self.dataloader_val, self.dataloader_test = load_cifar10(self.batch_size)
@@ -283,7 +148,7 @@ class Trainer:
                     if self.should_early_stop():
                         print("Early stopping.")
                         return
-            self.scheduler.step()
+
 
 
 if __name__ == "__main__":
@@ -315,3 +180,51 @@ if __name__ == "__main__":
     print("Final train accuracy:", trainer.TRAIN_ACC[-1])
     print("Final validation accuracy:", trainer.VALIDATION_ACC[-1])
     print("Final test accuracy:", trainer.TEST_ACC[-1])
+
+    # # Save loss and accuracy
+    # np.save("TRAIN_LOSS.npy", np.array(trainer.TRAIN_LOSS))
+    # np.save("VALIDATION_LOSS.npy", np.array(trainer.VALIDATION_LOSS))
+    # np.save("TEST_LOSS.npy", np.array(trainer.TEST_LOSS))
+    # np.save("VALIDATION_ACC.npy", np.array(trainer.VALIDATION_ACC))
+    # np.save("TEST_ACC.npy", np.array(trainer.TEST_ACC))
+
+
+    # # Visualize output from first convolutional layer
+    # image = plt.imread("data/ship7.png")
+    # image = torchvision.transforms.functional.to_tensor(image)
+    # image = torchvision.transforms.functional.normalize(image.data, mean, std)
+    # image = image.view(1, *image.shape)
+    # image = nn.functional.interpolate(image, size=(256, 256))
+    #
+    # model = torchvision.models.resnet18(pretrained=True)
+    # first_layer_out = model.conv1(image)
+    # to_visualize = first_layer_out.view(first_layer_out.shape[1], 1, *first_layer_out.shape[2:])
+    # torchvision.utils.save_image(to_visualize, "filters_first_layer.png")
+    #
+    # to_visualize = first_layer_out.view(first_layer_out.shape[1], 1, *first_layer_out.shape[2:])
+    # torchvision.utils.save_image(to_visualize, "filters_first_layer.png")
+
+
+
+    # #Forward pass through all layers except the fully connected layer
+    # model = list(trainer.model.children())[0]
+    # image = plt.imread("data/ship7.png")
+    # image = to_cuda(torchvision.transforms.functional.to_tensor(image))
+    # image = torchvision.transforms.functional.normalize(image.data, mean, std)
+    # image = image.view(1, *image.shape)
+    # image = nn.functional.interpolate(image, size=(256, 256))
+    #
+    # filter_img = model.conv1(image)
+    # filter_img = model.bn1(filter_img)
+    # filter_img = model.relu(filter_img)
+    # filter_img = model.maxpool(filter_img)
+    # filter_img = model.layer1(filter_img)
+    # filter_img = model.layer2(filter_img)
+    # filter_img = model.layer3(filter_img)
+    # filter_img = model.layer4(filter_img)
+    #
+    # to_visualize = filter_img.view(filter_img.shape[1], 1, *filter_img.shape[2:])[:128]
+    # torchvision.utils.save_image(to_visualize, "filters_last_layer.png")
+
+
+

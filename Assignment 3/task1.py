@@ -23,8 +23,8 @@ class ExampleModel(nn.Module):
         # Define the convolutional layers
         self.feature_extractor = nn.Sequential(
             nn.Conv2d(
-                in_channels = image_channels,
-                out_channels = num_filters,
+                in_channels=image_channels,
+                out_channels=num_filters,
                 kernel_size=5,
                 stride=1,
                 padding=2
@@ -33,7 +33,7 @@ class ExampleModel(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(
                 in_channels=num_filters,
-                out_channels=num_filters*2,
+                out_channels=num_filters * 2,
                 kernel_size=5,
                 stride=1,
                 padding=2
@@ -41,8 +41,8 @@ class ExampleModel(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(
-                in_channels=num_filters*2,
-                out_channels=num_filters*4,
+                in_channels=num_filters * 2,
+                out_channels=num_filters * 4,
                 kernel_size=5,
                 stride=1,
                 padding=2
@@ -50,14 +50,8 @@ class ExampleModel(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        # The output of feature_extractor will be [batch_size, num_filters, 16, 16]
 
-        #layer1_output = ((num_filters/2)-5+(2*2),(num_filters/2)-5+(2*2),32)
-        #layer2_output = ((layer1_output[0]/2)- 5 + (2 * 2), (layer1_output[1]/2) - 5 + (2 * 2), 64)
-        #layer3_output = ((layer2_output[0] / 2) - 5 + (2 * 2), (layer2_output[1] / 2) - 5 + (2 * 2), 128)
-
-        #self.num_output_features = int(layer3_output[0]*layer3_output[1]*layer3_output[2])
-        self.num_output_features = 4*4*128
+        self.num_output_features = 4 * 4 * 128
 
         # Initialize our last fully connected layer
         # Inputs all extracted features from the convolutional layers
@@ -197,11 +191,11 @@ class Trainer:
 
                 # Gradient descent step
                 self.optimizer.step()
-                
+
                 # Reset all computed gradients to 0
                 self.optimizer.zero_grad()
-                 # Compute loss/accuracy for all three datasets.
-                if batch_it % self.valid8*8,ation_check == 0:
+                # Compute loss/accuracy for all three datasets.
+                if batch_it % self.validation_check == 0:
                     self.validation_epoch()
                     # Check early stopping criteria.
                     if self.should_early_stop():
@@ -235,3 +229,4 @@ if __name__ == "__main__":
 
     print("Final test accuracy:", trainer.TEST_ACC[-trainer.early_stop_count])
     print("Final validation accuracy:", trainer.VALIDATION_ACC[-trainer.early_stop_count])
+    print("Final training accuracy: ", trainer.TRAIN_ACC[-trainer.early_stop_count])

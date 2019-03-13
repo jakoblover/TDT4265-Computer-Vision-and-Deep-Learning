@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from dataloaders import load_cifar10
 from utils import to_cuda, compute_loss_and_accuracy
-
+import numpy as np
 
 class ExampleModel(nn.Module):
 
@@ -20,100 +20,72 @@ class ExampleModel(nn.Module):
         super().__init__()
         num_filters = 32  # Set number of filters in first conv layer
 
-        # Define the convolutional layers
-        # self.feature_extractor = nn.Sequential(
-        #     nn.Conv2d(
-        #         in_channels=image_channels,
-        #         out_channels=num_filters,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters,
-        #         out_channels=num_filters * 2,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters * 2,
-        #         out_channels=num_filters * 4,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        # )
-
         self.feature_extractor = nn.Sequential(
             #[32x32x3]
             nn.Conv2d(
                 in_channels=image_channels,
                 out_channels=num_filters,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters),
             nn.Conv2d(
                 in_channels=num_filters,
                 out_channels=num_filters,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(),
+            nn.Dropout(p=0.5),
 
             #[16x16x32]
             nn.Conv2d(
                 in_channels=num_filters,
                 out_channels=num_filters*2,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters*2),
             nn.Conv2d(
                 in_channels=num_filters * 2,
                 out_channels=num_filters * 2,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters*2),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(),
+            nn.Dropout(p=0.4),
 
             #[8x8x64]
             nn.Conv2d(
                 in_channels=num_filters * 2,
                 out_channels=num_filters * 4,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters*4),
             nn.Conv2d(
                 in_channels=num_filters * 4,
                 out_channels=num_filters * 4,
-                kernel_size=3,
+                kernel_size=5,
                 stride=1,
-                padding=1
+                padding=2
             ),
-            nn.ReLU(),
+            nn.ELU(),
             nn.BatchNorm2d(num_filters*4),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(),
+            nn.Dropout(p=0.3),
 
         )
         # The output of feature_extractor will be [batch_size, num_filters, 16, 16]
@@ -131,9 +103,7 @@ class ExampleModel(nn.Module):
         # There is no need for softmax activation function, as this is
         # included with nn.CrossEntropyLoss
         self.classifier = nn.Sequential(
-            nn.Linear(self.num_output_features, 64),
-            nn.LeakyReLU(),
-            nn.Linear(64, num_classes),
+            nn.Linear(self.num_output_features, num_classes),
         )
 
         self.feature_extractor.apply(self.init_weights)
@@ -185,7 +155,10 @@ class Trainer:
         # Define our optimizer. SGD = Stochastich Gradient Descent
         self.optimizer = torch.optim.SGD(self.model.parameters(),
                                          self.learning_rate)
-        self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
+        #self.scheduler = torch.optim.lr_scheduler.ExponentialLR(self.optimizer, gamma=0.95)
+        self.scheduler = torch.optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=[4,8], gamma=0.5, last_epoch=-1)
+
+
         # Load our dataset
         self.dataloader_train, self.dataloader_val, self.dataloader_test = load_cifar10(self.batch_size)
 
@@ -253,6 +226,7 @@ class Trainer:
         # Track initial loss/accuracy
         self.validation_epoch()
         for epoch in range(self.epochs):
+            print("Epoch {0}".format(epoch))
             # Perform a full pass through all the training samples
             for batch_it, (X_batch, Y_batch) in enumerate(self.dataloader_train):
                 # X_batch is the CIFAR10 images. Shape: [batch_size, 3, 32, 32]
@@ -308,10 +282,14 @@ if __name__ == "__main__":
     plt.savefig(os.path.join("plots", "final_accuracy.png"))
     plt.show()
 
-    #print("Final test accuracy:", trainer.TEST_ACC[-trainer.early_stop_count])
-    #print("Final validation accuracy:", trainer.VALIDATION_ACC[-trainer.early_stop_count])
-    print("Final train loss:", trainer.TRAIN_LOSS[-trainer.early_stop_count])
-    print("Final validation loss:", trainer.VALIDATION_LOSS[-trainer.early_stop_count])
-    print("Final train accuracy:", trainer.TRAIN_ACC[-trainer.early_stop_count])
-    print("Final validation accuracy:", trainer.VALIDATION_ACC[-trainer.early_stop_count])
-    print("Final test accuracy:", trainer.TEST_ACC[-trainer.early_stop_count])
+    print("Final train loss:", trainer.TRAIN_LOSS[-1])
+    print("Final validation loss:", trainer.VALIDATION_LOSS[-1])
+    print("Final train accuracy:", trainer.TRAIN_ACC[-1])
+    print("Final validation accuracy:", trainer.VALIDATION_ACC[-1])
+    print("Final test accuracy:", trainer.TEST_ACC[-1])
+
+    np.save("task2_best_model_TRAIN_LOSS.npy", np.array(trainer.TRAIN_LOSS))
+    np.save("task2_best_model_VALIDATION_LOSS.npy", np.array(trainer.VALIDATION_LOSS))
+    np.save("task2_best_model_TEST_LOSS.npy", np.array(trainer.TEST_LOSS))
+    np.save("task2_best_model_VALIDATION_ACC.npy", np.array(trainer.VALIDATION_ACC))
+    np.save("task2_best_model_TEST_ACC.npy", np.array(trainer.TEST_ACC))

@@ -20,34 +20,6 @@ class ExampleModel(nn.Module):
         super().__init__()
         num_filters = 32  # Set number of filters in first conv layer
 
-        # Define the convolutional layers
-        # self.feature_extractor = nn.Sequential(
-        #     nn.Conv2d(
-        #         in_channels=image_channels,
-        #         out_channels=num_filters,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters,
-        #         out_channels=num_filters * 2,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        #     nn.Conv2d(
-        #         in_channels=num_filters * 2,
-        #         out_channels=num_filters * 4,
-        #         kernel_size=2,
-        #         stride=2,
-        #         padding=0
-        #     ),
-        #     nn.ReLU(),
-        # )
-
         self.feature_extractor = nn.Sequential(
             #[32x32x3]
             nn.Conv2d(
@@ -308,5 +280,8 @@ if __name__ == "__main__":
     plt.savefig(os.path.join("plots", "final_accuracy.png"))
     plt.show()
 
-    print("Final test accuracy:", trainer.TEST_ACC[-trainer.early_stop_count])
+    print("Final train loss:", trainer.TRAIN_LOSS[-trainer.early_stop_count])
+    print("Final validation loss:", trainer.VALIDATION_LOSS[-trainer.early_stop_count])
+    print("Final train accuracy:", trainer.TRAIN_ACC[-trainer.early_stop_count])
     print("Final validation accuracy:", trainer.VALIDATION_ACC[-trainer.early_stop_count])
+    print("Final test accuracy:", trainer.TEST_ACC[-trainer.early_stop_count])
