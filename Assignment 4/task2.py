@@ -256,7 +256,7 @@ def plot_precision_recall_curve(precisions, recalls):
     plt.ylabel("Precision")
     plt.xlim([0.8, 1.0])
     plt.ylim([0.8, 1.0])
-    plt.savefig("precision_recall_curve.png")
+    plt.savefig("precision_recall_curve.eps")
 
 
 def calculate_mean_average_precision(precisions, recalls):

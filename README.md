@@ -1,7 +1,7 @@
 # TDT4265 Computer Vision and Deep Learning
 This repo contains the assignments done in the computer vision and deep learning class at NTNU.
 
-##Assignment 1
+## Assignment 1
 Assignment 1 focused on deriving the gradients for logistic regression and softmax regression, and implementing these from scratch using NumPy. We used the MNIST dataset to test the algorithms on handwritten digits.
 First, a binary classification algorithm using logistic regression was created. Then, we introduce regularization to improve generalization. Finally, we implement a 10-way classification algorithm using softmax regression.
 
@@ -14,7 +14,7 @@ First, a binary classification algorithm using logistic regression was created. 
 
 **Score: 5.625/6**
 
-##Assignment 2
+## Assignment 2
 Assignment 2 focused on backpropagation, hidden layers, and known tricks to improve the performance of neural networks.
 Tricks that are introduced are for example:
 * Initializing weights using a normal distribution
@@ -32,7 +32,7 @@ Tricks that are introduced are for example:
 
 **Score: 5.9/6**
 
-##Assignment 3
+## Assignment 3
 Assignment 3 was the first task that involved convolutional neural networks. We used the CIFAR-10 dataset 
 to perform 10-way classification on images. 
 We used PyTorch as our deep learning framework, and compare how different parameters affect the performance of our network.
