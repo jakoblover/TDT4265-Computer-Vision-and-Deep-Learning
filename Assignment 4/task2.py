@@ -17,15 +17,18 @@ def calculate_iou(prediction_box, gt_box):
             float: value of the intersection of union for the two boxes.
     """
 
+    # Find coordinates for intersectional rectangle
     x_1 = max(prediction_box[0], gt_box[0])
     y_1 = max(prediction_box[1], gt_box[1])
     x_2 = min(prediction_box[2], gt_box[2])
     y_2 = min(prediction_box[3], gt_box[3])
 
+    # Calculate area of intersectional rectangle, and the prediction and ground truth boxes
     area_intersection = max(0, x_2 - x_1) * max(0, y_2 - y_1)
     area_pred = (prediction_box[2] - prediction_box[0]) * (prediction_box[3] - prediction_box[1])
     area_gt = (gt_box[2] - gt_box[0]) * (gt_box[3] - gt_box[1])
 
+    # Divide area of intersection by intersection of union
     return area_intersection / float(area_pred + area_gt - area_intersection)
 
 def calculate_precision(num_tp, num_fp, num_fn):
@@ -162,13 +165,12 @@ def calculate_precision_recall_all_images(all_prediction_boxes, all_gt_boxes, io
     Returns:
         tuple: (precision, recall). Both float.
     """
-    # Find total true positives, false positives and false negatives
-    # over all images
 
     total_tp = 0
     total_fp = 0
     total_fn = 0
 
+    # Add up all the true positives etc. for all images
     for pb, gb in zip(all_prediction_boxes, all_gt_boxes):
         image_dict = calculate_individual_image_result(pb, gb, iou_threshold)
 
@@ -176,6 +178,7 @@ def calculate_precision_recall_all_images(all_prediction_boxes, all_gt_boxes, io
         total_fp += image_dict["false_pos"]
         total_fn += image_dict["false_neg"]
 
+    # Calculate precision and recall
     precision = calculate_precision(total_tp, total_fp, total_fn)
     recall = calculate_recall(total_tp, total_fp, total_fn)
 
@@ -217,6 +220,8 @@ def get_precision_recall_curve(all_prediction_boxes, all_gt_boxes,
 
     for confidence in confidence_thresholds:
         img_preds = []
+
+        # Find the predicted boxes with confidence scores larger than a threshold
         for img, boxes_p in enumerate(all_prediction_boxes):
             preds = [box_p for i, box_p in enumerate(boxes_p) if confidence_scores[img][i] >= confidence]
             preds = np.array(preds)
@@ -264,12 +269,18 @@ def calculate_mean_average_precision(precisions, recalls):
     Returns:
         float: mean average precision
     """
-    # Calculate the mean average precision given these recall levels.
-    # DO NOT CHANGE. If you change this, the tests will not pass when we run the final
-    # evaluation
     recall_levels = np.linspace(0, 1.0, 11)
-    # YOUR CODE HERE
-    raise NotImplementedError
+
+    max_precisions = []
+    # Find the largest precision if the corresponding recall value is larger than a threshold
+    for recall_level in recall_levels:
+        precision_list = [p for p, r in zip(precisions, recalls) if r >= recall_level]
+        if precision_list:
+            max_precisions.append(max(precision_list))
+        else:
+            max_precisions.append(0)
+
+    return np.average(max_precisions)
 
 
 def mean_average_precision(ground_truth_boxes, predicted_boxes):
