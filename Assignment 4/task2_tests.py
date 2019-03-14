@@ -1,4 +1,5 @@
 from task2 import *
+#from jostein import *
 import numpy as np
 
 
