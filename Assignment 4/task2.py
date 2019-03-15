@@ -29,7 +29,8 @@ def calculate_iou(prediction_box, gt_box):
     area_gt = (gt_box[2] - gt_box[0]) * (gt_box[3] - gt_box[1])
 
     # Divide area of intersection by intersection of union
-    return area_intersection / float(area_pred + area_gt - area_intersection)
+    iou = area_intersection / float(area_pred + area_gt - area_intersection)
+    return iou
 
 def calculate_precision(num_tp, num_fp, num_fn):
     """ Calculates the precision for the given parameters.
