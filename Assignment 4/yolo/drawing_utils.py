@@ -2,6 +2,7 @@
 import colorsys
 import random
 import numpy as np
+import os
 from PIL import Image, ImageDraw, ImageFont
 import matplotlib.pyplot as plt 
 def generate_colors(class_names):

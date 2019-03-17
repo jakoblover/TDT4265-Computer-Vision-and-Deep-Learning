@@ -222,7 +222,6 @@ def get_precision_recall_curve(all_prediction_boxes, all_gt_boxes,
     for confidence in confidence_thresholds:
         img_preds = []
 
-        # Find the predicted boxes with confidence scores larger than a threshold
         for img, boxes_p in enumerate(all_prediction_boxes):
             preds = [box_p for i, box_p in enumerate(boxes_p) if confidence_scores[img][i] >= confidence]
             preds = np.array(preds)
