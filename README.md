@@ -43,3 +43,12 @@ Finally, we perform transfer learning using ResNet18, trained on a much larger d
 Great job! I think you have understood all concepts clearly, and the report is excellent. Keep it up! 
 
 **Score: 6/6**
+
+## Assignment 4
+Assignment 4 is about YOLO (You Only Look Once) and metrics. 
+
+**Feedback**
+
+Great job! Unfortunately the result of your AP2 is not correct, from a quick glance at your task1_d code, I noticed you don't use idx_2, it’s probably a related coding error.
+
+**Score: 5.85/6**
